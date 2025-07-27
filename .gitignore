@@ -149,3 +149,6 @@ Thumbs.db
 logs/
 temp/
 tmp/ 
+
+# devcontainer things
+.devcontainer/
