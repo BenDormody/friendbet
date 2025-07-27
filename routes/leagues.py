@@ -65,10 +65,38 @@ def detail(league_id):
                            is_admin=league.is_admin(current_user.get_id()))
 
 
+@leagues_bp.route('/join', methods=['POST'])
+@login_required
+def join_by_code():
+    """Join a league using invite code"""
+    invite_code = request.form.get('invite_code')
+
+    if not invite_code:
+        flash('Invite code is required', 'error')
+        return redirect(url_for('leagues.dashboard'))
+
+    league = League.get_by_invite_code(invite_code)
+    if not league:
+        flash('Invalid invite code', 'error')
+        return redirect(url_for('leagues.dashboard'))
+
+    if league.is_member(current_user.get_id()):
+        flash('You are already a member of this league', 'info')
+        return redirect(url_for('leagues.detail', league_id=league._id))
+
+    # Add user to league
+    if league.add_member(current_user.get_id()):
+        flash('Successfully joined the league!', 'success')
+        return redirect(url_for('leagues.detail', league_id=league._id))
+    else:
+        flash('Failed to join league', 'error')
+        return redirect(url_for('leagues.dashboard'))
+
+
 @leagues_bp.route('/<league_id>/join', methods=['POST'])
 @login_required
 def join(league_id):
-    """Join a league using invite code"""
+    """Join a league using invite code (legacy route)"""
     invite_code = request.form.get('invite_code')
 
     if not invite_code:
@@ -121,11 +149,14 @@ def settings(league_id):
     if request.method == 'POST':
         name = request.form.get('name')
         description = request.form.get('description')
+        status = request.form.get('status')
 
         if name:
             league.name = name
-        if description:
+        if description is not None:
             league.description = description
+        if status:
+            league.status = status
 
         league.save()
         flash('League settings updated', 'success')

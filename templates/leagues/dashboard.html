@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}My Leagues - Fantasy Betting League{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="display-5 fw-bold text-white">My Leagues</h1>
+                <a href="{{ url_for('leagues.create') }}" class="btn btn-primary-custom">
+                    <i class="fas fa-plus me-2"></i>Create New League
+                </a>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Join League Section -->
+            <div class="card custom-card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title text-white">Join a League</h5>
+                    <p class="card-text text-muted">Have an invite code? Join an existing league!</p>
+                    <form action="{{ url_for('leagues.join_by_code') }}" method="POST" class="row g-3">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control custom-input" name="invite_code" 
+                                   placeholder="Enter invite code" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-secondary-custom w-100">Join League</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- User's Leagues -->
+            {% if leagues %}
+                <div class="row">
+                    {% for league in leagues %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card custom-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h5 class="card-title text-white mb-0">{{ league.name }}</h5>
+                                        {% if league.is_admin(current_user.get_id()) %}
+                                            <span class="badge bg-primary">Admin</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if league.description %}
+                                        <p class="card-text text-muted mb-3">{{ league.description }}</p>
+                                    {% endif %}
+                                    
+                                    <div class="row text-center mb-3">
+                                        <div class="col-6">
+                                            <div class="text-white fw-bold">{{ league.members|length }}</div>
+                                            <div class="text-muted small">Members</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="text-white fw-bold">${{ league.starting_balance }}</div>
+                                            <div class="text-muted small">Starting Balance</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid">
+                                        <a href="{{ url_for('leagues.detail', league_id=league._id) }}" 
+                                           class="btn btn-primary-custom">View League</a>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent border-0">
+                                    <small class="text-muted">
+                                        Created {{ league.created_at.strftime('%b %d, %Y') }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-trophy fa-3x text-muted"></i>
+                    </div>
+                    <h3 class="text-white mb-3">No Leagues Yet</h3>
+                    <p class="text-muted mb-4">Start by creating your first league or joining an existing one!</p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a href="{{ url_for('leagues.create') }}" class="btn btn-primary-custom">
+                            Create League
+                        </a>
+                        <button class="btn btn-secondary-custom" onclick="showJoinLeagueModal()">
+                            Join League
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showJoinLeagueModal() {
+    var modal = new bootstrap.Modal(document.getElementById('joinLeagueModal'));
+    modal.show();
+}
+</script>
+{% endblock %} 

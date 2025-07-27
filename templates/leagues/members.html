@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}{{ league.name }} - Members{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold text-white mb-2">{{ league.name }} - Members</h1>
+                    <p class="text-muted mb-0">{{ league.members|length }} members</p>
+                </div>
+                <a href="{{ url_for('leagues.detail', league_id=league._id) }}" class="btn btn-secondary-custom">
+                    <i class="fas fa-arrow-left me-2"></i>Back to League
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card custom-card">
+                <div class="card-body">
+                    <h5 class="card-title text-white mb-4">Leaderboard</h5>
+                    
+                    {% if leaderboard %}
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" class="text-center">#</th>
+                                        <th scope="col">Member</th>
+                                        <th scope="col" class="text-center">Balance</th>
+                                        <th scope="col" class="text-center">Joined</th>
+                                        {% if is_admin %}
+                                            <th scope="col" class="text-center">Actions</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for member in leaderboard %}
+                                        <tr class="{{ 'table-primary' if member.user_id == current_user.get_id() else '' }}">
+                                            <td class="text-center">
+                                                {% if loop.index == 1 %}
+                                                    <i class="fas fa-trophy text-warning"></i>
+                                                {% elif loop.index == 2 %}
+                                                    <i class="fas fa-medal text-secondary"></i>
+                                                {% elif loop.index == 3 %}
+                                                    <i class="fas fa-medal text-bronze"></i>
+                                                {% else %}
+                                                    {{ loop.index }}
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-placeholder me-3">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-white fw-bold">
+                                                            {% if member.user_id == current_user.get_id() %}
+                                                                {{ current_user.username }} (You)
+                                                            {% else %}
+                                                                User #{{ member.user_id[:8] }}
+                                                            {% endif %}
+                                                        </div>
+                                                        {% if member.user_id in league.admins %}
+                                                            <span class="badge bg-primary">Admin</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="text-white fw-bold">${{ member.balance }}</span>
+                                            </td>
+                                            <td class="text-center text-muted">
+                                                {{ member.joined_at.strftime('%b %d, %Y') }}
+                                            </td>
+                                            {% if is_admin and member.user_id != current_user.get_id() %}
+                                                <td class="text-center">
+                                                    <div class="btn-group" role="group">
+                                                        {% if member.user_id in league.admins %}
+                                                            <button class="btn btn-sm btn-outline-warning" 
+                                                                    onclick="removeAdmin('{{ member.user_id }}')" 
+                                                                    title="Remove Admin">
+                                                                <i class="fas fa-user-minus"></i>
+                                                            </button>
+                                                        {% else %}
+                                                            <button class="btn btn-sm btn-outline-success" 
+                                                                    onclick="addAdmin('{{ member.user_id }}')" 
+                                                                    title="Make Admin">
+                                                                <i class="fas fa-user-plus"></i>
+                                                            </button>
+                                                        {% endif %}
+                                                        <button class="btn btn-sm btn-outline-danger" 
+                                                                onclick="removeMember('{{ member.user_id }}')" 
+                                                                title="Remove Member">
+                                                            <i class="fas fa-user-times"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            {% elif is_admin %}
+                                                <td class="text-center">
+                                                    <span class="text-muted">You</span>
+                                                </td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">No members found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- League Stats -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card custom-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-white">Total Members</h5>
+                    <div class="text-white fw-bold fs-1">{{ league.members|length }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card custom-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-white">Admins</h5>
+                    <div class="text-white fw-bold fs-1">{{ league.admins|length }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card custom-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-white">Total Balance</h5>
+                    <div class="text-white fw-bold fs-1">${{ league.members|sum(attribute='balance') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.table-dark {
+    background-color: transparent;
+}
+
+.table-dark th,
+.table-dark td {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addAdmin(userId) {
+    if (confirm('Are you sure you want to make this user an admin?')) {
+        // TODO: Implement admin promotion
+        alert('Admin promotion functionality coming soon!');
+    }
+}
+
+function removeAdmin(userId) {
+    if (confirm('Are you sure you want to remove admin privileges from this user?')) {
+        // TODO: Implement admin removal
+        alert('Admin removal functionality coming soon!');
+    }
+}
+
+function removeMember(userId) {
+    if (confirm('Are you sure you want to remove this member from the league?')) {
+        // TODO: Implement member removal
+        alert('Member removal functionality coming soon!');
+    }
+}
+</script>
+{% endblock %} 

@@ -11,6 +11,9 @@
     <!-- Google Fonts - Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     {% block extra_css %}{% endblock %}
@@ -33,13 +36,7 @@
                         <a class="nav-link" href="/">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/leagues">My Leagues</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/create-league">Create League</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/join-league">Join League</a>
+                        <a class="nav-link" href="/leagues">League Dashboard</a>
                     </li>
                 </ul>
                 

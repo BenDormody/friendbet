@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}{{ league.name }} - Fantasy Betting League{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- League Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="display-5 fw-bold text-white mb-2">{{ league.name }}</h1>
+                    {% if league.description %}
+                        <p class="text-muted mb-0">{{ league.description }}</p>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-2">
+                    {% if is_admin %}
+                        <a href="{{ url_for('leagues.settings', league_id=league._id) }}" class="btn btn-secondary-custom">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a>
+                        <a href="{{ url_for('tickets.create_ticket', league_id=league._id) }}" class="btn btn-primary-custom">
+                            <i class="fas fa-plus me-2"></i>Create Ticket
+                        </a>
+                    {% endif %}
+                    <a href="{{ url_for('leagues.invite', league_id=league._id) }}" class="btn btn-outline-light">
+                        <i class="fas fa-share me-2"></i>Invite
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- League Stats -->
+        <div class="col-md-4 mb-4">
+            <div class="card custom-card">
+                <div class="card-body">
+                    <h5 class="card-title text-white">League Stats</h5>
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="text-white fw-bold fs-4">{{ league.members|length }}</div>
+                            <div class="text-muted small">Members</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="text-white fw-bold fs-4">${{ league.starting_balance }}</div>
+                            <div class="text-muted small">Starting Balance</div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-white fw-bold fs-4">${{ user_balance }}</div>
+                        <div class="text-muted small">Your Balance</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-md-8 mb-4">
+            <div class="card custom-card">
+                <div class="card-body">
+                    <h5 class="card-title text-white">Quick Actions</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('tickets.list_tickets', league_id=league._id) }}" class="btn btn-outline-light w-100">
+                                <i class="fas fa-ticket-alt me-2"></i>View Tickets
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('leagues.members', league_id=league._id) }}" class="btn btn-outline-light w-100">
+                                <i class="fas fa-users me-2"></i>View Members
+                            </a>
+                        </div>
+                        {% if is_admin %}
+                            <div class="col-md-6">
+                                <a href="{{ url_for('tickets.create_ticket', league_id=league._id) }}" class="btn btn-primary-custom w-100">
+                                    <i class="fas fa-plus me-2"></i>Create Ticket
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{{ url_for('leagues.settings', league_id=league._id) }}" class="btn btn-secondary-custom w-100">
+                                    <i class="fas fa-cog me-2"></i>League Settings
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card custom-card">
+                <div class="card-body">
+                    <h5 class="card-title text-white">Recent Activity</h5>
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-line fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No recent activity to display</p>
+                        <p class="text-muted small">Activity will appear here as members place bets and tickets are resolved</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- League Info -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card custom-card">
+                <div class="card-body">
+                    <h5 class="card-title text-white">League Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1"><strong>Created:</strong></p>
+                            <p class="text-white">{{ league.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1"><strong>Status:</strong></p>
+                            <span class="badge bg-{{ 'success' if league.status == 'active' else 'warning' }}">
+                                {{ league.status.title() }}
+                            </span>
+                        </div>
+                        {% if league.end_date %}
+                            <div class="col-md-6">
+                                <p class="text-muted mb-1"><strong>End Date:</strong></p>
+                                <p class="text-white">{{ league.end_date.strftime('%B %d, %Y') }}</p>
+                            </div>
+                        {% endif %}
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1"><strong>Invite Code:</strong></p>
+                            <div class="input-group">
+                                <input type="text" class="form-control custom-input" value="{{ league.invite_code }}" readonly>
+                                <button class="btn btn-outline-light" type="button" onclick="copyInviteCode()">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyInviteCode() {
+    const inviteCode = '{{ league.invite_code }}';
+    navigator.clipboard.writeText(inviteCode).then(function() {
+        // Show a temporary success message
+        const button = event.target.closest('button');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.remove('btn-outline-light');
+        button.classList.add('btn-success');
+        
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-light');
+        }, 2000);
+    });
+}
+</script>
+{% endblock %} 

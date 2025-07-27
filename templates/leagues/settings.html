@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}{{ league.name }} - Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold text-white mb-2">{{ league.name }} - Settings</h1>
+                    <p class="text-muted mb-0">Manage your league configuration</p>
+                </div>
+                <a href="{{ url_for('leagues.detail', league_id=league._id) }}" class="btn btn-secondary-custom">
+                    <i class="fas fa-arrow-left me-2"></i>Back to League
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- League Settings Form -->
+        <div class="col-md-8">
+            <div class="card custom-card">
+                <div class="card-body">
+                    <h5 class="card-title text-white mb-4">League Information</h5>
+                    
+                    <form method="POST" action="{{ url_for('leagues.settings', league_id=league._id) }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label text-white">League Name *</label>
+                            <input type="text" class="form-control custom-input" id="name" name="name" 
+                                   value="{{ league.name }}" required>
+                            <div class="form-text text-muted">The name that appears to all members</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label text-white">Description</label>
+                            <textarea class="form-control custom-input" id="description" name="description" 
+                                      rows="3">{{ league.description or '' }}</textarea>
+                            <div class="form-text text-muted">Optional description of your league's theme or purpose</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="status" class="form-label text-white">League Status</label>
+                            <select class="form-select custom-input" id="status" name="status">
+                                <option value="active" {{ 'selected' if league.status == 'active' else '' }}>Active</option>
+                                <option value="paused" {{ 'selected' if league.status == 'paused' else '' }}>Paused</option>
+                                <option value="completed" {{ 'selected' if league.status == 'completed' else '' }}>Completed</option>
+                            </select>
+                            <div class="form-text text-muted">
+                                <strong>Active:</strong> Members can place bets<br>
+                                <strong>Paused:</strong> No new bets allowed<br>
+                                <strong>Completed:</strong> League is finished
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary-custom">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- League Info Sidebar -->
+        <div class="col-md-4">
+            <div class="card custom-card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title text-white">League Details</h5>
+                    <div class="mb-3">
+                        <p class="text-muted mb-1"><strong>Created:</strong></p>
+                        <p class="text-white">{{ league.created_at.strftime('%B %d, %Y') }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-muted mb-1"><strong>Members:</strong></p>
+                        <p class="text-white">{{ league.members|length }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-muted mb-1"><strong>Starting Balance:</strong></p>
+                        <p class="text-white">${{ league.starting_balance }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-muted mb-1"><strong>Invite Code:</strong></p>
+                        <div class="input-group">
+                            <input type="text" class="form-control custom-input" value="{{ league.invite_code }}" readonly>
+                            <button class="btn btn-outline-light" type="button" onclick="copyInviteCode()">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card custom-card border-danger">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">Danger Zone</h5>
+                    <p class="text-muted small mb-3">These actions cannot be undone.</p>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-warning" onclick="regenerateInviteCode()">
+                            <i class="fas fa-refresh me-2"></i>Regenerate Invite Code
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="deleteLeague()">
+                            <i class="fas fa-trash me-2"></i>Delete League
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyInviteCode() {
+    const inviteCode = '{{ league.invite_code }}';
+    navigator.clipboard.writeText(inviteCode).then(function() {
+        // Show a temporary success message
+        const button = event.target.closest('button');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.remove('btn-outline-light');
+        button.classList.add('btn-success');
+        
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-light');
+        }, 2000);
+    });
+}
+
+function regenerateInviteCode() {
+    if (confirm('Are you sure you want to regenerate the invite code? The old code will no longer work.')) {
+        // TODO: Implement invite code regeneration
+        alert('Invite code regeneration functionality coming soon!');
+    }
+}
+
+function deleteLeague() {
+    if (confirm('Are you sure you want to delete this league? This action cannot be undone and will remove all data including bets and tickets.')) {
+        if (confirm('This will permanently delete the league and all associated data. Are you absolutely sure?')) {
+            // TODO: Implement league deletion
+            alert('League deletion functionality coming soon!');
+        }
+    }
+}
+</script>
+{% endblock %} 
