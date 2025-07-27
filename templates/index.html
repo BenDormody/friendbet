@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Fantasy Betting League - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">Create Your Fantasy Betting League</h1>
+        <p class="hero-subtitle">
+            Build custom betting pools with friends. Bet on anything from TV shows to sports seasons with fake currency. 
+            Compete, win, and climb the leaderboard.
+        </p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <button class="btn btn-primary-custom" onclick="FantasyBetting.showCreateLeagueModal()">
+                Create New League
+            </button>
+            <button class="btn btn-secondary-custom" onclick="FantasyBetting.showJoinLeagueModal()">
+                Join Existing League
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- My Leagues Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">My Leagues</h2>
+            <p class="section-subtitle">Your active betting leagues and competitions</p>
+        </div>
+        
+        <div class="row g-4" id="leaguesContainer">
+            <!-- League cards will be populated by JavaScript -->
+        </div>
+        
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-icon">🏆</div>
+            <h3>No Leagues Yet</h3>
+            <p class="empty-state-text">Join or create your first fantasy betting league to get started!</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <button class="btn btn-primary-custom" onclick="FantasyBetting.showCreateLeagueModal()">
+                    Create League
+                </button>
+                <button class="btn btn-secondary-custom" onclick="FantasyBetting.showJoinLeagueModal()">
+                    Join League
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Sample league data - in real app this would come from backend
+    const sampleLeagues = [
+        {
+            id: 1,
+            name: "Game of Thrones Season 8",
+            description: "Bet on character deaths, plot twists, and season finale outcomes",
+            members: 12,
+            balance: 1250,
+            status: "active",
+            created_at: "2024-01-15"
+        },
+        {
+            id: 2,
+            name: "NBA Playoffs 2024",
+            description: "Championship predictions, series outcomes, and player performance bets",
+            members: 8,
+            balance: 800,
+            status: "active",
+            created_at: "2024-01-10"
+        },
+        {
+            id: 3,
+            name: "Oscars 2024",
+            description: "Best picture, actor, actress, and other major category predictions",
+            members: 15,
+            balance: 2100,
+            status: "completed",
+            created_at: "2024-01-01"
+        }
+    ];
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        loadLeagues();
+    });
+
+    function loadLeagues() {
+        const container = document.getElementById('leaguesContainer');
+        const emptyState = document.getElementById('emptyState');
+        
+        if (sampleLeagues.length === 0) {
+            container.style.display = 'none';
+            emptyState.style.display = 'block';
+            return;
+        }
+        
+        container.style.display = 'flex';
+        emptyState.style.display = 'none';
+        
+        container.innerHTML = sampleLeagues.map(league => `
+            <div class="col-md-6 col-lg-4">
+                <div class="league-card" onclick="FantasyBetting.openLeague(${league.id})">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title">${league.name}</h5>
+                        <span class="league-status status-${league.status}">${league.status}</span>
+                    </div>
+                    <p class="card-text">${league.description}</p>
+                    <div class="league-stats">
+                        <div class="league-stat">
+                            Members: <span class="league-stat-value">${league.members}</span>
+                        </div>
+                        <div class="league-stat">
+                            Balance: <span class="league-stat-value">${FantasyBetting.formatCurrency(league.balance)}</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary-custom w-100">View League</button>
+                </div>
+            </div>
+        `).join('');
+    }
+</script>
+{% endblock %} 

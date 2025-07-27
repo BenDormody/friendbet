@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}About - Fantasy Betting League{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">About Fantasy Betting League</h1>
+        <p class="hero-subtitle">
+            Create custom betting pools with friends and compete for the highest winnings.
+        </p>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="section-title">How It Works</h2>
+                        <p class="card-text">
+                            Fantasy Betting League allows you to create custom betting pools for any topic or event. 
+                            Whether it's TV shows, sports seasons, or general events, you can set up leagues and invite friends to join.
+                        </p>
+                        
+                        <h3 class="mt-4">Features</h3>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">✅ Create custom betting leagues</li>
+                            <li class="mb-2">✅ Invite friends via invite codes</li>
+                            <li class="mb-2">✅ Place bets with fake currency</li>
+                            <li class="mb-2">✅ Real-time leaderboards</li>
+                            <li class="mb-2">✅ Multiple bet types (Over/Under, Moneyline)</li>
+                        </ul>
+                        
+                        <h3 class="mt-4">Getting Started</h3>
+                        <p class="card-text">
+                            Sign up for an account, create your first league, and start inviting friends to join the fun!
+                        </p>
+                        
+                        <div class="text-center mt-4">
+                            <button class="btn btn-primary-custom" onclick="FantasyBetting.showRegisterModal()">
+                                Get Started
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

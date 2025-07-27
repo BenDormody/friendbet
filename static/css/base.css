@@ -1,0 +1,342 @@
+/* Base CSS for Fantasy Betting League - Dark Theme Design System */
+
+:root {
+    /* Color Palette from design.json */
+    --primary-bg: #0a0a0a;
+    --primary-surface: #111111;
+    --primary-elevated: #1a1a1a;
+    --primary-border: #2a2a2a;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-muted: #666666;
+    --text-accent: #00ff88;
+    --interactive-primary: #ffffff;
+    --interactive-primary-hover: #f0f0f0;
+    --interactive-secondary: #333333;
+    --interactive-secondary-hover: #444444;
+}
+
+/* Base Typography */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+/* Typography Scale */
+.hero-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.section-title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.section-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+}
+
+/* Navigation */
+.navbar {
+    background: rgba(10, 10, 10, 0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 0;
+    height: 4rem;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--text-primary) !important;
+    text-decoration: none;
+}
+
+.brand-accent {
+    color: var(--text-accent);
+}
+
+.nav-link {
+    color: var(--text-secondary) !important;
+    font-weight: 500;
+    transition: color 0.2s ease;
+    text-decoration: none;
+}
+
+.nav-link:hover {
+    color: var(--text-primary) !important;
+}
+
+/* Main Content */
+.main-content {
+    padding-top: 4rem; /* Account for fixed navbar */
+}
+
+/* Buttons */
+.btn-primary-custom {
+    background: var(--interactive-primary);
+    color: var(--primary-bg);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.btn-primary-custom:hover {
+    background: var(--interactive-primary-hover);
+    transform: translateY(-1px);
+    color: var(--primary-bg);
+    text-decoration: none;
+}
+
+.btn-secondary-custom {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--interactive-secondary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.btn-secondary-custom:hover {
+    background: var(--interactive-secondary-hover);
+    color: var(--text-primary);
+    border-color: var(--interactive-secondary-hover);
+    text-decoration: none;
+}
+
+/* Form Controls */
+.custom-input {
+    background: var(--primary-elevated) !important;
+    border: 1px solid var(--primary-border) !important;
+    color: var(--text-primary) !important;
+    border-radius: 0.5rem;
+}
+
+.custom-input:focus {
+    background: var(--primary-elevated) !important;
+    border-color: var(--text-accent) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 255, 136, 0.25) !important;
+}
+
+.custom-input::placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* Modals */
+.modal-content {
+    background: var(--primary-surface) !important;
+    border: 1px solid var(--primary-border) !important;
+    border-radius: 0.75rem;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--primary-border) !important;
+}
+
+.modal-title {
+    color: var(--text-primary);
+}
+
+.form-label {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Close button for modals */
+.btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Cards */
+.card {
+    background: var(--primary-surface);
+    border: 1px solid var(--primary-border);
+    border-radius: 0.75rem;
+    backdrop-filter: blur(10px);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.card-title {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.card-text {
+    color: var(--text-secondary);
+}
+
+/* League Cards */
+.league-card {
+    background: var(--primary-surface);
+    border: 1px solid var(--primary-border);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    height: 100%;
+    cursor: pointer;
+}
+
+.league-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    border-color: var(--text-accent);
+}
+
+.league-card .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.league-card .card-text {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.league-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.league-stat {
+    color: var(--text-muted);
+}
+
+.league-stat-value {
+    color: var(--text-accent);
+    font-weight: 500;
+}
+
+.league-status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-active {
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--text-accent);
+}
+
+.status-completed {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.empty-state-text {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+/* Spacing Utilities */
+.section-header {
+    margin-bottom: 3rem;
+}
+
+.hero-section {
+    padding: 8rem 0 6rem 0;
+    text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 6rem 0 4rem 0;
+    }
+    
+    .league-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .navbar-nav {
+        text-align: center;
+        margin: 1rem 0;
+    }
+    
+    .d-flex.gap-2 {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.6s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Utility Classes */
+.text-accent {
+    color: var(--text-accent) !important;
+}
+
+.bg-surface {
+    background-color: var(--primary-surface) !important;
+}
+
+.bg-elevated {
+    background-color: var(--primary-elevated) !important;
+}
+
+.border-custom {
+    border-color: var(--primary-border) !important;
+} 

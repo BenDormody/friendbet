@@ -3,7 +3,6 @@ from bson import ObjectId
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import get_db
-from auth import login_manager
 
 
 class User(UserMixin):
@@ -96,8 +95,3 @@ class User(UserMixin):
             created_at=user_data['created_at'],
             leagues=user_data.get('leagues', [])
         )
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.get_by_id(user_id)
