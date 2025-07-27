@@ -3,7 +3,7 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
-  "forwardPorts": [5050, 27018],
+  "forwardPorts": [5001, 27018],
   "postCreateCommand": "pip install -r requirements.txt",
   "remoteUser": "vscode"
 }

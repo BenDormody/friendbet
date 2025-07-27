@@ -6,14 +6,12 @@ services:
     volumes:
       - ..:/workspace:cached
     command: sleep infinity
-    environment:
-      - FLASK_APP=app.py
-      - FLASK_ENV=development
-      - MONGODB_URI=mongodb://mongo:27017/fantasy_betting
+    env_file:
+      - devcontainer.env
     depends_on:
       - mongo
     ports:
-      - "5050:5000"
+      - "5001:5000"
 
   mongo:
     image: mongo:7.0
