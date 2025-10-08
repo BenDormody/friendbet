@@ -280,5 +280,3 @@ fantasy_betting_app/
 
 - `POST /tickets/<id>/bet` - Place bet on ticket
 - `GET /users/<id>/bets` - User's betting history
-
-This comprehensive overview should provide Cursor with a clear understanding of the project scope, technical requirements, and step-by-step development approach for building your fantasy betting league web application.

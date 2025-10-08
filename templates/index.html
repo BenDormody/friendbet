@@ -6,123 +6,505 @@
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="container">
-        <h1 class="hero-title">Create Your Fantasy Betting League</h1>
-        <p class="hero-subtitle">
-            Build custom betting pools with friends. Bet on anything from TV shows to sports seasons with fake currency. 
-            Compete, win, and climb the leaderboard.
-        </p>
-        <div class="d-flex gap-3 justify-content-center flex-wrap">
-            <a href="/leagues/create" class="btn btn-primary-custom">
-                Create New League
-            </a>
-            <a href="/leagues" class="btn btn-secondary-custom">
-                Join Existing League
-            </a>
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="hero-title text-gradient mb-4">
+                        Create Your Fantasy Betting League
+                    </h1>
+                    <p class="hero-subtitle mb-4">
+                        Build custom betting pools with friends. Place bets with fake currency, 
+                        compete for the highest winnings, and crown the ultimate betting champion.
+                    </p>
+                    <div class="hero-cta">
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('leagues.dashboard') }}" class="btn btn-primary btn-lg me-3">
+                                <i data-lucide="trophy" class="me-2"></i>
+                                Go to Dashboard
+                            </a>
+                            <a href="{{ url_for('leagues.create') }}" class="btn btn-secondary btn-lg">
+                                <i data-lucide="plus" class="me-2"></i>
+                                Create League
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg me-3">
+                                <i data-lucide="user-plus" class="me-2"></i>
+                                Get Started
+                            </a>
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-lg">
+                                <i data-lucide="log-in" class="me-2"></i>
+                                Sign In
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-visual">
+                    <div class="hero-cards">
+                        <div class="hero-card card-league">
+                            <div class="card-header">
+                                <h3 class="league-name">🏈 NFL Season 2024</h3>
+                                <span class="badge badge-status-live">Live</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="league-stats">
+                                    <div class="stat">
+                                        <span class="stat-label">Members</span>
+                                        <span class="stat-value">12</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-label">Active Tickets</span>
+                                        <span class="stat-value">8</span>
+                                    </div>
+                                </div>
+                                <div class="leaderboard-preview">
+                                    <div class="leaderboard-item">
+                                        <div class="rank">1</div>
+                                        <div class="user">
+                                            <div class="avatar">M</div>
+                                            <div class="name">Mike</div>
+                                        </div>
+                                        <div class="balance">$2,450</div>
+                                    </div>
+                                    <div class="leaderboard-item">
+                                        <div class="rank">2</div>
+                                        <div class="user">
+                                            <div class="avatar">S</div>
+                                            <div class="name">Sarah</div>
+                                        </div>
+                                        <div class="balance">$1,890</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="hero-card card-ticket">
+                            <div class="card-header">
+                                <h4>Super Bowl Winner</h4>
+                                <span class="badge badge-status-open">Open</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="odds-options">
+                                    <div class="odds-button">
+                                        <div class="odds-label">Chiefs</div>
+                                        <div class="odds-value">+150</div>
+                                    </div>
+                                    <div class="odds-button selected">
+                                        <div class="odds-label">Bills</div>
+                                        <div class="odds-value">+200</div>
+                                    </div>
+                                    <div class="odds-button">
+                                        <div class="odds-label">Ravens</div>
+                                        <div class="odds-value">+300</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- My Leagues Section -->
-<section class="py-5">
+<!-- Features Section -->
+<section class="features-section py-5">
     <div class="container">
-        <div class="section-header">
-            <h2 class="section-title">My Leagues</h2>
-            <p class="section-subtitle">Your active betting leagues and competitions</p>
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="section-title mb-4">Why Choose Fantasy Betting League?</h2>
+                <p class="section-subtitle">
+                    Experience the thrill of sports betting with friends in a safe, 
+                    fun environment using fake currency.
+                </p>
+            </div>
         </div>
         
-        <div class="row g-4" id="leaguesContainer">
-            <!-- League cards will be populated by JavaScript -->
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card">
+                    <div class="feature-icon mb-3">
+                        <i data-lucide="users" class="text-primary"></i>
+                    </div>
+                    <h3 class="feature-title">Create with Friends</h3>
+                    <p class="feature-description">
+                        Start private leagues with your friend group. Invite members easily 
+                        with shareable codes and manage permissions.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card">
+                    <div class="feature-icon mb-3">
+                        <i data-lucide="ticket" class="text-primary"></i>
+                    </div>
+                    <h3 class="feature-title">Custom Betting Options</h3>
+                    <p class="feature-description">
+                        Create moneyline bets and over/under predictions on any topic. 
+                        Set custom odds and let the competition begin.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card">
+                    <div class="feature-icon mb-3">
+                        <i data-lucide="trending-up" class="text-primary"></i>
+                    </div>
+                    <h3 class="feature-title">Real-time Leaderboards</h3>
+                    <p class="feature-description">
+                        Track your progress with live leaderboards. Watch your balance 
+                        grow as you make winning predictions.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card">
+                    <div class="feature-icon mb-3">
+                        <i data-lucide="shield" class="text-primary"></i>
+                    </div>
+                    <h3 class="feature-title">Safe & Secure</h3>
+                    <p class="feature-description">
+                        All betting is done with fake currency. No real money involved, 
+                        just pure fun and friendly competition.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card">
+                    <div class="feature-icon mb-3">
+                        <i data-lucide="calendar" class="text-primary"></i>
+                    </div>
+                    <h3 class="feature-title">Flexible Duration</h3>
+                    <p class="feature-description">
+                        Run leagues for a season, a month, or indefinitely. 
+                        Set your own rules and timeline.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card card">
+                    <div class="feature-icon mb-3">
+                        <i data-lucide="bar-chart-3" class="text-primary"></i>
+                    </div>
+                    <h3 class="feature-title">Detailed Analytics</h3>
+                    <p class="feature-description">
+                        Track your betting history, win rates, and performance 
+                        across all your leagues.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works-section py-5 bg-secondary">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="section-title mb-4">How It Works</h2>
+                <p class="section-subtitle">
+                    Get started in minutes with our simple 3-step process.
+                </p>
+            </div>
         </div>
         
-        <!-- Empty State -->
-        <div class="empty-state" id="emptyState" style="display: none;">
-            <div class="empty-state-icon">🏆</div>
-            <h3>No Leagues Yet</h3>
-            <p class="empty-state-text">Join or create your first fantasy betting league to get started!</p>
-            <div class="d-flex gap-3 justify-content-center flex-wrap">
-                <a href="/leagues/create" class="btn btn-primary-custom">
-                    Create League
-                </a>
-                <a href="/leagues" class="btn btn-secondary-custom">
-                    Join League
-                </a>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="step-card text-center">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Create or Join</h3>
+                    <p class="step-description">
+                        Create your own league or join an existing one using 
+                        an invite code from a friend.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="step-card text-center">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Place Bets</h3>
+                    <p class="step-description">
+                        Admins create betting tickets, and members place bets 
+                        using their allocated fake currency.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="step-card text-center">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Compete & Win</h3>
+                    <p class="step-description">
+                        Watch the results unfold and compete for the top spot 
+                        on the leaderboard.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="cta-title mb-4">Ready to Start Your League?</h2>
+                <p class="cta-description mb-4">
+                    Join thousands of users who are already enjoying fantasy betting leagues.
+                </p>
+                {% if not current_user.is_authenticated %}
+                    <div class="cta-buttons">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg me-3">
+                            <i data-lucide="user-plus" class="me-2"></i>
+                            Create Account
+                        </a>
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-ghost btn-lg">
+                            <i data-lucide="log-in" class="me-2"></i>
+                            Sign In
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="cta-buttons">
+                        <a href="{{ url_for('leagues.dashboard') }}" class="btn btn-primary btn-lg me-3">
+                            <i data-lucide="trophy" class="me-2"></i>
+                            View Dashboard
+                        </a>
+                        <a href="{{ url_for('leagues.create') }}" class="btn btn-secondary btn-lg">
+                            <i data-lucide="plus" class="me-2"></i>
+                            Create League
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </section>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-    // Sample league data - in real app this would come from backend
-    const sampleLeagues = [
-        {
-            id: 1,
-            name: "Game of Thrones Season 8",
-            description: "Bet on character deaths, plot twists, and season finale outcomes",
-            members: 12,
-            balance: 1250,
-            status: "active",
-            created_at: "2024-01-15"
-        },
-        {
-            id: 2,
-            name: "NBA Playoffs 2024",
-            description: "Championship predictions, series outcomes, and player performance bets",
-            members: 8,
-            balance: 800,
-            status: "active",
-            created_at: "2024-01-10"
-        },
-        {
-            id: 3,
-            name: "Oscars 2024",
-            description: "Best picture, actor, actress, and other major category predictions",
-            members: 15,
-            balance: 2100,
-            status: "completed",
-            created_at: "2024-01-01"
-        }
-    ];
+{% block extra_head %}
+<style>
+.hero-section {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    position: relative;
+    overflow: hidden;
+}
 
-    // Initialize page
-    document.addEventListener('DOMContentLoaded', function() {
-        loadLeagues();
-    });
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 80%, rgba(196, 255, 13, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(196, 255, 13, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
 
-    function loadLeagues() {
-        const container = document.getElementById('leaguesContainer');
-        const emptyState = document.getElementById('emptyState');
-        
-        if (sampleLeagues.length === 0) {
-            container.style.display = 'none';
-            emptyState.style.display = 'block';
-            return;
-        }
-        
-        container.style.display = 'flex';
-        emptyState.style.display = 'none';
-        
-        container.innerHTML = sampleLeagues.map(league => `
-            <div class="col-md-6 col-lg-4">
-                <div class="league-card" onclick="FantasyBetting.openLeague(${league.id})">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h5 class="card-title">${league.name}</h5>
-                        <span class="league-status status-${league.status}">${league.status}</span>
-                    </div>
-                    <p class="card-text">${league.description}</p>
-                    <div class="league-stats">
-                        <div class="league-stat">
-                            Members: <span class="league-stat-value">${league.members}</span>
-                        </div>
-                        <div class="league-stat">
-                            Balance: <span class="league-stat-value">${FantasyBetting.formatCurrency(league.balance)}</span>
-                        </div>
-                    </div>
-                    <button class="btn btn-secondary-custom w-100">View League</button>
-                </div>
-            </div>
-        `).join('');
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.hero-cta {
+    margin-top: 2rem;
+}
+
+.hero-visual {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.hero-card {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.hero-card:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.hero-card:nth-child(2) {
+    animation-delay: 0.4s;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
-</script>
-{% endblock %} 
+}
+
+.features-section {
+    padding: 4rem 0;
+}
+
+.feature-card {
+    text-align: center;
+    padding: 2rem;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+}
+
+.feature-icon i {
+    font-size: 3rem;
+    color: var(--accent-neon);
+}
+
+.feature-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.feature-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.how-it-works-section {
+    background-color: var(--bg-secondary);
+}
+
+.step-card {
+    padding: 2rem 1rem;
+}
+
+.step-number {
+    width: 4rem;
+    height: 4rem;
+    background: linear-gradient(135deg, var(--accent-neon), var(--accent-neon-dark));
+    color: var(--text-inverse);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 auto 1.5rem;
+}
+
+.step-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.step-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.cta-section {
+    padding: 4rem 0;
+}
+
+.cta-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.cta-description {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+}
+
+.league-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent-neon);
+}
+
+.odds-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.125rem;
+    }
+    
+    .hero-cards {
+        max-width: 100%;
+        margin-top: 2rem;
+    }
+    
+    .cta-title {
+        font-size: 2rem;
+    }
+    
+    .odds-options {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

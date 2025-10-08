@@ -1,7 +1,8 @@
-from .bet import Bet
-from .ticket import Ticket
-from .league import League
-from .user import User
-from database import get_db
+"""Models package for Fantasy Betting League application"""
 
-__all__ = ['User', 'League', 'Ticket', 'Bet', 'get_db']
+from .user import User
+from .league import League
+from .ticket import Ticket
+from .bet import Bet
+
+__all__ = ['User', 'League', 'Ticket', 'Bet']

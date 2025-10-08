@@ -1,204 +1,291 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import Ticket, League, Bet
+from flask_wtf import FlaskForm
+from wtforms import StringField, TextAreaField, FloatField, SubmitField, DateTimeField, SelectField, FieldList, FormField
+from wtforms.validators import DataRequired, Length, NumberRange
+from models.league import League
+from models.ticket import Ticket
+from bson import ObjectId
+from datetime import datetime, timedelta
 
 tickets_bp = Blueprint('tickets', __name__)
 
+class OptionForm(FlaskForm):
+    """Form for betting option"""
+    option_text = StringField('Option', validators=[DataRequired(), Length(max=100)])
+    odds = FloatField('Odds', validators=[DataRequired(), NumberRange(min=1.01, max=100)])
 
-@tickets_bp.route('/league/<league_id>')
+class CreateTicketForm(FlaskForm):
+    """Form for creating a new ticket"""
+    title = StringField('Ticket Title', validators=[
+        DataRequired(),
+        Length(min=3, max=100, message='Title must be between 3 and 100 characters')
+    ])
+    description = TextAreaField('Description', validators=[
+        Length(max=500, message='Description must be less than 500 characters')
+    ])
+    ticket_type = SelectField('Bet Type', choices=[
+        ('moneyline', 'Moneyline'),
+        ('over_under', 'Over/Under')
+    ], validators=[DataRequired()])
+    
+    # For over/under bets
+    target_value = FloatField('Target Value', validators=[
+        NumberRange(min=0.5, max=1000, message='Target value must be between 0.5 and 1000')
+    ])
+    over_odds = FloatField('Over Odds', validators=[
+        NumberRange(min=1.01, max=100, message='Odds must be between 1.01 and 100')
+    ])
+    under_odds = FloatField('Under Odds', validators=[
+        NumberRange(min=1.01, max=100, message='Odds must be between 1.01 and 100')
+    ])
+    
+    # For moneyline bets
+    options = FieldList(FormField(OptionForm), min_entries=2, max_entries=10)
+    
+    closes_at = DateTimeField('Closes At', format='%Y-%m-%dT%H:%M')
+    submit = SubmitField('Create Ticket')
+
+@tickets_bp.route('/<league_id>/create', methods=['GET', 'POST'])
 @login_required
-def list_tickets(league_id):
-    """List all tickets for a league"""
-    league = League.get_by_id(league_id)
-    if not league or not league.is_member(current_user.get_id()):
-        flash('League not found or access denied', 'error')
-        return redirect(url_for('leagues.dashboard'))
-
-    tickets = Ticket.get_league_tickets(league_id)
-    return render_template('tickets/list.html',
-                           league=league,
-                           tickets=tickets,
-                           is_admin=league.is_admin(current_user.get_id()))
-
-
-@tickets_bp.route('/league/<league_id>/create', methods=['GET', 'POST'])
-@login_required
-def create_ticket(league_id):
-    """Create a new ticket (admin only)"""
-    league = League.get_by_id(league_id)
-    if not league or not league.is_admin(current_user.get_id()):
-        flash('Access denied', 'error')
-        return redirect(url_for('leagues.dashboard'))
-
-    if request.method == 'POST':
-        title = request.form.get('title')
-        description = request.form.get('description')
-        ticket_type = request.form.get('type')
-
-        if not title or not ticket_type:
-            flash('Title and type are required', 'error')
-            return render_template('tickets/create.html', league=league)
-
-        # Create ticket
-        ticket = Ticket(
-            league_id=league_id,
-            title=title,
-            description=description,
-            ticket_type=ticket_type,
-            created_by=current_user.get_id()
-        )
-
-        # Add options based on ticket type
-        if ticket_type == 'moneyline':
-            options = []
-            for i in range(1, 6):  # Allow up to 5 options
-                option_text = request.form.get(f'option_{i}')
-                odds = request.form.get(f'odds_{i}')
-                if option_text and odds:
-                    try:
-                        odds = float(odds)
-                        options.append({
-                            'option_text': option_text,
-                            'odds': odds
-                        })
-                    except ValueError:
-                        flash(f'Invalid odds for option {i}', 'error')
-                        return render_template('tickets/create.html', league=league)
-
-            if len(options) < 2:
-                flash('At least 2 options are required for moneyline bets', 'error')
-                return render_template('tickets/create.html', league=league)
-
-            ticket.options = options
-
-        elif ticket_type == 'over_under':
-            target_value = request.form.get('target_value')
-            over_odds = request.form.get('over_odds')
-            under_odds = request.form.get('under_odds')
-
-            if not target_value or not over_odds or not under_odds:
-                flash('Target value and odds are required for over/under bets', 'error')
-                return render_template('tickets/create.html', league=league)
-
+def create(league_id):
+    """Create new ticket (admin only)"""
+    try:
+        league = League.get_by_id(league_id)
+        
+        if not league:
+            flash('League not found.', 'error')
+            return redirect(url_for('leagues.dashboard'))
+        
+        # Check if user is admin
+        if not league.is_admin(current_user._id):
+            flash('You do not have permission to create tickets.', 'error')
+            return redirect(url_for('leagues.detail', league_id=league_id))
+        
+        form = CreateTicketForm()
+        
+        if form.validate_on_submit():
             try:
-                target_value = float(target_value)
-                over_odds = float(over_odds)
-                under_odds = float(under_odds)
-            except ValueError:
-                flash('Invalid numeric values', 'error')
-                return render_template('tickets/create.html', league=league)
-
-            ticket.target_value = target_value
-            ticket.options = [
-                {'option_text': f'Over {target_value}', 'odds': over_odds},
-                {'option_text': f'Under {target_value}', 'odds': under_odds}
-            ]
-
-        ticket.save()
-        flash('Ticket created successfully!', 'success')
-        return redirect(url_for('tickets.list_tickets', league_id=league_id))
-
-    return render_template('tickets/create.html', league=league)
-
+                ticket = None
+                
+                if form.ticket_type.data == 'moneyline':
+                    # Create moneyline ticket
+                    options_data = []
+                    for option_form in form.options:
+                        if option_form.option_text.data.strip():
+                            options_data.append({
+                                'option_text': option_form.option_text.data.strip(),
+                                'odds': option_form.odds.data
+                            })
+                    
+                    if len(options_data) < 2:
+                        flash('Moneyline tickets must have at least 2 options.', 'error')
+                        return render_template('tickets/create.html', form=form, league=league)
+                    
+                    ticket = Ticket.create_moneyline(
+                        league_id=league._id,
+                        title=form.title.data,
+                        description=form.description.data,
+                        options=options_data,
+                        created_by=current_user._id,
+                        closes_at=form.closes_at.data
+                    )
+                
+                elif form.ticket_type.data == 'over_under':
+                    # Create over/under ticket
+                    ticket = Ticket.create_over_under(
+                        league_id=league._id,
+                        title=form.title.data,
+                        description=form.description.data,
+                        target_value=form.target_value.data,
+                        over_odds=form.over_odds.data,
+                        under_odds=form.under_odds.data,
+                        created_by=current_user._id,
+                        closes_at=form.closes_at.data
+                    )
+                
+                if ticket:
+                    flash(f'Ticket "{ticket.title}" created successfully!', 'success')
+                    return redirect(url_for('leagues.detail', league_id=league_id))
+                else:
+                    flash('Failed to create ticket. Please try again.', 'error')
+                    
+            except Exception as e:
+                flash('An error occurred while creating the ticket.', 'error')
+        
+        return render_template('tickets/create.html', form=form, league=league)
+        
+    except Exception as e:
+        flash('An error occurred while loading the ticket creation page.', 'error')
+        return redirect(url_for('leagues.dashboard'))
 
 @tickets_bp.route('/<ticket_id>')
 @login_required
-def view_ticket(ticket_id):
-    """View ticket details and place bets"""
-    ticket = Ticket.get_by_id(ticket_id)
-    if not ticket:
-        flash('Ticket not found', 'error')
+def detail(ticket_id):
+    """Ticket detail page"""
+    try:
+        ticket = Ticket.get_by_id(ticket_id)
+        
+        if not ticket:
+            flash('Ticket not found.', 'error')
+            return redirect(url_for('leagues.dashboard'))
+        
+        # Get league and check membership
+        league = League.get_by_id(ticket.league_id)
+        
+        if not league or not league.get_member(current_user._id):
+            flash('You are not a member of this league.', 'error')
+            return redirect(url_for('leagues.dashboard'))
+        
+        # Get user's bet for this ticket
+        from models.bet import Bet
+        user_bet = Bet.get_user_ticket_bet(current_user._id, ticket._id)
+        
+        # Get all bets for this ticket (for admin view)
+        all_bets = []
+        if league.is_admin(current_user._id):
+            all_bets = Bet.get_ticket_bets(ticket._id)
+        
+        return render_template('tickets/detail.html',
+                             ticket=ticket,
+                             league=league,
+                             user_bet=user_bet,
+                             all_bets=all_bets)
+        
+    except Exception as e:
+        flash('An error occurred while loading the ticket.', 'error')
         return redirect(url_for('leagues.dashboard'))
-
-    league = League.get_by_id(ticket.league_id)
-    if not league or not league.is_member(current_user.get_id()):
-        flash('Access denied', 'error')
-        return redirect(url_for('leagues.dashboard'))
-
-    # Get user's balance
-    user_balance = league.get_member_balance(current_user.get_id())
-
-    # Get existing bet by user
-    existing_bet = None
-    if ticket.is_open():
-        user_bets = Bet.get_user_bets(current_user.get_id(), ticket.league_id)
-        for bet in user_bets:
-            if bet.ticket_id == str(ticket._id):
-                existing_bet = bet
-                break
-
-    return render_template('tickets/view.html',
-                           ticket=ticket,
-                           league=league,
-                           user_balance=user_balance,
-                           existing_bet=existing_bet,
-                           is_admin=league.is_admin(current_user.get_id()))
-
 
 @tickets_bp.route('/<ticket_id>/resolve', methods=['POST'])
 @login_required
-def resolve_ticket(ticket_id):
-    """Resolve a ticket (admin only)"""
-    ticket = Ticket.get_by_id(ticket_id)
-    if not ticket:
-        flash('Ticket not found', 'error')
+def resolve(ticket_id):
+    """Resolve ticket (admin only)"""
+    try:
+        ticket = Ticket.get_by_id(ticket_id)
+        
+        if not ticket:
+            flash('Ticket not found.', 'error')
+            return redirect(url_for('leagues.dashboard'))
+        
+        # Get league and check admin permissions
+        league = League.get_by_id(ticket.league_id)
+        
+        if not league or not league.is_admin(current_user._id):
+            flash('You do not have permission to resolve this ticket.', 'error')
+            return redirect(url_for('tickets.detail', ticket_id=ticket_id))
+        
+        winning_option = request.form.get('winning_option')
+        
+        if not winning_option:
+            flash('Please select a winning option.', 'error')
+            return redirect(url_for('tickets.detail', ticket_id=ticket_id))
+        
+        # Validate winning option
+        valid_options = [option['option_text'] for option in ticket.options]
+        if winning_option not in valid_options:
+            flash('Invalid winning option selected.', 'error')
+            return redirect(url_for('tickets.detail', ticket_id=ticket_id))
+        
+        # Resolve ticket
+        if ticket.resolve_ticket(winning_option):
+            ticket.save()
+            
+            # Resolve all bets for this ticket
+            from models.bet import Bet
+            result = Bet.resolve_bets(ticket._id, winning_option)
+            
+            # Update user balances
+            update_user_balances(ticket, winning_option, league)
+            
+            flash(f'Ticket resolved! {result["won"]} bets won, {result["lost"]} bets lost.', 'success')
+        else:
+            flash('Failed to resolve ticket.', 'error')
+        
+        return redirect(url_for('tickets.detail', ticket_id=ticket_id))
+        
+    except Exception as e:
+        flash('An error occurred while resolving the ticket.', 'error')
         return redirect(url_for('leagues.dashboard'))
 
-    league = League.get_by_id(ticket.league_id)
-    if not league or not league.is_admin(current_user.get_id()):
-        flash('Access denied', 'error')
-        return redirect(url_for('leagues.dashboard'))
-
-    if not ticket.is_open():
-        flash('Ticket is already resolved or closed', 'error')
-        return redirect(url_for('tickets.view_ticket', ticket_id=ticket_id))
-
-    resolution = request.form.get('resolution')
-    if not resolution:
-        flash('Resolution is required', 'error')
-        return redirect(url_for('tickets.view_ticket', ticket_id=ticket_id))
-
-    # Validate resolution
-    valid_options = [opt['option_text'] for opt in ticket.options]
-    if resolution not in valid_options:
-        flash('Invalid resolution', 'error')
-        return redirect(url_for('tickets.view_ticket', ticket_id=ticket_id))
-
-    # Resolve ticket and all bets
-    ticket.resolve(resolution)
-    Bet.resolve_ticket_bets(str(ticket._id), resolution)
-
-    # Update user balances
-    bets = Bet.get_ticket_bets(str(ticket._id))
-    for bet in bets:
-        if bet.is_won():
-            # Add winnings to user's balance
-            current_balance = league.get_member_balance(bet.user_id)
-            new_balance = current_balance + bet.get_payout_amount()
-            league.update_member_balance(bet.user_id, new_balance)
-
-    flash('Ticket resolved successfully!', 'success')
-    return redirect(url_for('tickets.view_ticket', ticket_id=ticket_id))
-
+def update_user_balances(ticket, winning_option, league):
+    """Update user balances after ticket resolution"""
+    try:
+        from models.bet import Bet
+        bets = Bet.get_ticket_bets(ticket._id)
+        
+        for bet in bets:
+            user_member = league.get_member(bet.user_id)
+            if user_member:
+                if bet.selected_option == winning_option:
+                    # User won - add winnings to balance
+                    new_balance = user_member['balance'] + bet.potential_payout
+                    league.update_member_balance(bet.user_id, new_balance)
+                # If user lost, balance remains the same (bet amount was already deducted)
+        
+        league.save()
+        
+    except Exception as e:
+        print(f"Error updating user balances: {e}")
 
 @tickets_bp.route('/<ticket_id>/close', methods=['POST'])
 @login_required
-def close_ticket(ticket_id):
-    """Close a ticket (admin only)"""
-    ticket = Ticket.get_by_id(ticket_id)
-    if not ticket:
-        flash('Ticket not found', 'error')
+def close(ticket_id):
+    """Close ticket for new bets (admin only)"""
+    try:
+        ticket = Ticket.get_by_id(ticket_id)
+        
+        if not ticket:
+            flash('Ticket not found.', 'error')
+            return redirect(url_for('leagues.dashboard'))
+        
+        # Get league and check admin permissions
+        league = League.get_by_id(ticket.league_id)
+        
+        if not league or not league.is_admin(current_user._id):
+            flash('You do not have permission to close this ticket.', 'error')
+            return redirect(url_for('tickets.detail', ticket_id=ticket_id))
+        
+        if ticket.close_ticket():
+            ticket.save()
+            flash('Ticket closed for new bets.', 'success')
+        else:
+            flash('Failed to close ticket.', 'error')
+        
+        return redirect(url_for('tickets.detail', ticket_id=ticket_id))
+        
+    except Exception as e:
+        flash('An error occurred while closing the ticket.', 'error')
         return redirect(url_for('leagues.dashboard'))
 
-    league = League.get_by_id(ticket.league_id)
-    if not league or not league.is_admin(current_user.get_id()):
-        flash('Access denied', 'error')
-        return redirect(url_for('leagues.dashboard'))
-
-    if not ticket.is_open():
-        flash('Ticket is already closed or resolved', 'error')
-        return redirect(url_for('tickets.view_ticket', ticket_id=ticket_id))
-
-    ticket.close()
-    flash('Ticket closed successfully!', 'success')
-    return redirect(url_for('tickets.view_ticket', ticket_id=ticket_id))
+@tickets_bp.route('/api/<league_id>/tickets')
+@login_required
+def api_tickets(league_id):
+    """API endpoint for league tickets"""
+    try:
+        league = League.get_by_id(league_id)
+        
+        if not league or not league.get_member(current_user._id):
+            return jsonify({'error': 'League not found or access denied'}), 404
+        
+        tickets = Ticket.get_league_tickets(league._id)
+        
+        tickets_data = []
+        for ticket in tickets:
+            tickets_data.append({
+                'id': str(ticket._id),
+                'title': ticket.title,
+                'description': ticket.description,
+                'type': ticket.ticket_type,
+                'status': ticket.status,
+                'created_at': ticket.created_at.isoformat(),
+                'closes_at': ticket.closes_at.isoformat() if ticket.closes_at else None,
+                'options': ticket.options
+            })
+        
+        return jsonify({
+            'league_id': str(league._id),
+            'tickets': tickets_data
+        })
+        
+    except Exception as e:
+        return jsonify({'error': 'Failed to fetch tickets'}), 500

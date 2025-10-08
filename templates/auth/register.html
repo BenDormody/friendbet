@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Fantasy Betting League{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="auth-card">
+                    <div class="auth-header text-center mb-4">
+                        <h1 class="auth-title">Join the League</h1>
+                        <p class="auth-subtitle">Create your account to start betting</p>
+                    </div>
+                    
+                    <form method="POST" novalidate id="registerForm">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="form-group mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="Choose a username") }}
+                            <div class="form-feedback" id="usernameFeedback"></div>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.username.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your email") }}
+                            <div class="form-feedback" id="emailFeedback"></div>
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Create a password") }}
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            {{ form.confirm_password.label(class="form-label") }}
+                            {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""), placeholder="Confirm your password") }}
+                            {% if form.confirm_password.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.confirm_password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            {{ form.submit(class="btn btn-primary w-100") }}
+                        </div>
+                    </form>
+                    
+                    <div class="auth-footer text-center">
+                        <p class="auth-switch-text">
+                            Already have an account? 
+                            <a href="{{ url_for('auth.login') }}" class="auth-link">Sign in here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    padding: 2rem 0;
+}
+
+.auth-card {
+    background-color: var(--bg-card);
+    border-radius: var(--radius-xl);
+    padding: 3rem;
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+}
+
+.auth-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.auth-switch-text {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.auth-link {
+    color: var(--accent-neon);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-link:hover {
+    color: var(--accent-neon-dark);
+    text-decoration: underline;
+}
+
+.form-feedback {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    min-height: 1.25rem;
+}
+
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 2rem;
+        margin: 1rem;
+    }
+    
+    .auth-title {
+        font-size: 1.75rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registerForm');
+    const usernameField = document.querySelector('input[name="username"]');
+    const emailField = document.querySelector('input[name="email"]');
+    
+    // Real-time username validation
+    if (usernameField) {
+        const debouncedCheckUsername = FantasyBetting.Utils.debounce(async function() {
+            const username = usernameField.value.trim();
+            const feedback = document.getElementById('usernameFeedback');
+            
+            if (username.length < 3) {
+                feedback.textContent = '';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/auth/api/check-username?username=${encodeURIComponent(username)}`);
+                const data = await response.json();
+                
+                if (data.available) {
+                    feedback.textContent = '✓ Username is available';
+                    feedback.className = 'form-feedback text-success';
+                } else {
+                    feedback.textContent = data.message || 'Username is not available';
+                    feedback.className = 'form-feedback text-danger';
+                }
+            } catch (error) {
+                console.error('Error checking username:', error);
+            }
+        }, 500);
+        
+        usernameField.addEventListener('input', debouncedCheckUsername);
+    }
+    
+    // Real-time email validation
+    if (emailField) {
+        const debouncedCheckEmail = FantasyBetting.Utils.debounce(async function() {
+            const email = emailField.value.trim();
+            const feedback = document.getElementById('emailFeedback');
+            
+            if (!FantasyBetting.FormValidator.validateEmail(email)) {
+                feedback.textContent = '';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/auth/api/check-email?email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.available) {
+                    feedback.textContent = '✓ Email is available';
+                    feedback.className = 'form-feedback text-success';
+                } else {
+                    feedback.textContent = data.message || 'Email is already registered';
+                    feedback.className = 'form-feedback text-danger';
+                }
+            } catch (error) {
+                console.error('Error checking email:', error);
+            }
+        }, 500);
+        
+        emailField.addEventListener('input', debouncedCheckEmail);
+    }
+});
+</script>
+{% endblock %}

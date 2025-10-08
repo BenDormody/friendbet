@@ -1,118 +1,344 @@
 {% extends "base.html" %}
 
-{% block title %}My Leagues - Fantasy Betting League{% endblock %}
+{% block title %}Dashboard - Fantasy Betting League{% endblock %}
 
 {% block content %}
-<div class="container mt-5 pt-5">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="display-5 fw-bold text-white">My Leagues</h1>
-                <a href="{{ url_for('leagues.create') }}" class="btn btn-primary-custom">
-                    <i class="fas fa-plus me-2"></i>Create New League
-                </a>
-            </div>
-
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-
-            <!-- Join League Section -->
-            <div class="card custom-card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title text-white">Join a League</h5>
-                    <p class="card-text text-muted">Have an invite code? Join an existing league!</p>
-                    <form action="{{ url_for('leagues.join_by_code') }}" method="POST" class="row g-3">
-                        <div class="col-md-8">
-                            <input type="text" class="form-control custom-input" name="invite_code" 
-                                   placeholder="Enter invite code" required>
-                        </div>
-                        <div class="col-md-4">
-                            <button type="submit" class="btn btn-secondary-custom w-100">Join League</button>
-                        </div>
-                    </form>
+<div class="dashboard-container">
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header mb-5">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="dashboard-title">Your Leagues</h1>
+                    <p class="dashboard-subtitle">Manage your betting leagues and track your performance</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a href="{{ url_for('leagues.create') }}" class="btn btn-primary me-2">
+                        <i data-lucide="plus" class="me-2"></i>
+                        Create League
+                    </a>
+                    <a href="{{ url_for('leagues.join') }}" class="btn btn-secondary">
+                        <i data-lucide="user-plus" class="me-2"></i>
+                        Join League
+                    </a>
                 </div>
             </div>
-
-            <!-- User's Leagues -->
-            {% if leagues %}
-                <div class="row">
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="stats-card card">
+                    <div class="stats-icon">
+                        <i data-lucide="trophy" class="text-primary"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="stats-number">{{ total_leagues }}</h3>
+                        <p class="stats-label">Total Leagues</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card card">
+                    <div class="stats-icon">
+                        <i data-lucide="activity" class="text-success"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="stats-number">{{ active_leagues }}</h3>
+                        <p class="stats-label">Active Leagues</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card card">
+                    <div class="stats-icon">
+                        <i data-lucide="trending-up" class="text-warning"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="stats-number">$0.00</h3>
+                        <p class="stats-label">Total Winnings</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Leagues Grid -->
+        {% if leagues %}
+            <div class="leagues-section">
+                <h2 class="section-title mb-4">Your Leagues</h2>
+                <div class="row g-4">
                     {% for league in leagues %}
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card custom-card h-100">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="league-card card">
+                                <div class="card-header">
+                                    <div class="league-info">
+                                        <h3 class="league-name">{{ league.name }}</h3>
+                                        <p class="league-description">{{ league.description[:100] }}{% if league.description|length > 100 %}...{% endif %}</p>
+                                    </div>
+                                    <span class="status-badge badge badge-status-{{ league.status }}">
+                                        {{ league.status.title() }}
+                                    </span>
+                                </div>
+                                
                                 <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <h5 class="card-title text-white mb-0">{{ league.name }}</h5>
-                                        {% if league.is_admin(current_user.get_id()) %}
-                                            <span class="badge bg-primary">Admin</span>
+                                    <div class="league-stats">
+                                        <div class="stat">
+                                            <span class="stat-label">Members</span>
+                                            <span class="stat-value">{{ league.members|length }}</span>
+                                        </div>
+                                        <div class="stat">
+                                            <span class="stat-label">Your Balance</span>
+                                            <span class="stat-value">${{ league.get_member(current_user._id)['balance'] if league.get_member(current_user._id) else 0 }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="league-meta">
+                                        <div class="meta-item">
+                                            <i data-lucide="calendar" class="me-1"></i>
+                                            Created {{ league.created_at.strftime('%b %d, %Y') }}
+                                        </div>
+                                        {% if league.end_date %}
+                                            <div class="meta-item">
+                                                <i data-lucide="clock" class="me-1"></i>
+                                                Ends {{ league.end_date.strftime('%b %d, %Y') }}
+                                            </div>
                                         {% endif %}
                                     </div>
-                                    
-                                    {% if league.description %}
-                                        <p class="card-text text-muted mb-3">{{ league.description }}</p>
-                                    {% endif %}
-                                    
-                                    <div class="row text-center mb-3">
-                                        <div class="col-6">
-                                            <div class="text-white fw-bold">{{ league.members|length }}</div>
-                                            <div class="text-muted small">Members</div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="text-white fw-bold">${{ league.starting_balance }}</div>
-                                            <div class="text-muted small">Starting Balance</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="d-grid">
-                                        <a href="{{ url_for('leagues.detail', league_id=league._id) }}" 
-                                           class="btn btn-primary-custom">View League</a>
-                                    </div>
                                 </div>
-                                <div class="card-footer bg-transparent border-0">
-                                    <small class="text-muted">
-                                        Created {{ league.created_at.strftime('%b %d, %Y') }}
-                                    </small>
+                                
+                                <div class="card-footer">
+                                    <a href="{{ url_for('leagues.detail', league_id=league._id) }}" class="btn btn-primary w-100">
+                                        <i data-lucide="arrow-right" class="me-2"></i>
+                                        View League
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     {% endfor %}
                 </div>
-            {% else %}
-                <!-- Empty State -->
-                <div class="text-center py-5">
-                    <div class="mb-4">
-                        <i class="fas fa-trophy fa-3x text-muted"></i>
-                    </div>
-                    <h3 class="text-white mb-3">No Leagues Yet</h3>
-                    <p class="text-muted mb-4">Start by creating your first league or joining an existing one!</p>
-                    <div class="d-flex gap-3 justify-content-center">
-                        <a href="{{ url_for('leagues.create') }}" class="btn btn-primary-custom">
-                            Create League
-                        </a>
-                        <button class="btn btn-secondary-custom" onclick="showJoinLeagueModal()">
-                            Join League
-                        </button>
-                    </div>
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state text-center py-5">
+                <div class="empty-icon mb-4">
+                    <i data-lucide="trophy" class="text-muted"></i>
                 </div>
-            {% endif %}
-        </div>
+                <h3 class="empty-title">No Leagues Yet</h3>
+                <p class="empty-description mb-4">
+                    You haven't joined any leagues yet. Create your own league or join one with an invite code.
+                </p>
+                <div class="empty-actions">
+                    <a href="{{ url_for('leagues.create') }}" class="btn btn-primary me-3">
+                        <i data-lucide="plus" class="me-2"></i>
+                        Create League
+                    </a>
+                    <a href="{{ url_for('leagues.join') }}" class="btn btn-secondary">
+                        <i data-lucide="user-plus" class="me-2"></i>
+                        Join League
+                    </a>
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-function showJoinLeagueModal() {
-    var modal = new bootstrap.Modal(document.getElementById('joinLeagueModal'));
-    modal.show();
+{% block extra_head %}
+<style>
+.dashboard-container {
+    padding: 2rem 0;
 }
-</script>
-{% endblock %} 
+
+.dashboard-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+}
+
+.stats-card {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-radius: var(--radius-xl);
+    background-color: var(--bg-card);
+    border: 1px solid var(--bg-secondary);
+}
+
+.stats-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.stats-icon i {
+    font-size: 1.5rem;
+}
+
+.stats-content {
+    flex: 1;
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1;
+}
+
+.stats-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.league-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--bg-secondary);
+    transition: all 0.3s ease;
+}
+
+.league-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.league-card .card-header {
+    padding: 1.5rem 1.5rem 0;
+    border: none;
+    background: none;
+}
+
+.league-card .card-body {
+    flex: 1;
+    padding: 1rem 1.5rem;
+}
+
+.league-card .card-footer {
+    padding: 1rem 1.5rem 1.5rem;
+    border: none;
+    background: none;
+}
+
+.league-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.league-description {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.league-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.league-stats .stat {
+    text-align: center;
+}
+
+.league-stats .stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.league-stats .stat-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--accent-neon);
+}
+
+.league-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.empty-state {
+    padding: 4rem 2rem;
+}
+
+.empty-icon i {
+    font-size: 4rem;
+    opacity: 0.5;
+}
+
+.empty-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.empty-description {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .dashboard-title {
+        font-size: 2rem;
+    }
+    
+    .stats-card {
+        padding: 1rem;
+    }
+    
+    .stats-number {
+        font-size: 1.5rem;
+    }
+    
+    .league-card .card-header,
+    .league-card .card-body,
+    .league-card .card-footer {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}
