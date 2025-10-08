@@ -199,7 +199,7 @@ class League:
     @classmethod
     def _from_dict(cls, data: Dict[str, Any]) -> 'League':
         """Create League instance from database data"""
-        return cls(
+        league = cls(
             _id=data.get('_id'),
             name=data.get('name'),
             description=data.get('description'),
@@ -210,6 +210,10 @@ class League:
             end_date=data.get('end_date'),
             invite_code=data.get('invite_code')
         )
+        # Restore members and admins from database
+        league.members = data.get('members', [])
+        league.admins = data.get('admins', [league.creator_id] if league.creator_id else [])
+        return league
     
     def __repr__(self):
         return f"<League {self.name}>"

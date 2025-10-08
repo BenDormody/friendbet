@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}League Settings - {{ league.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h2 class="mb-0">League Settings</h2>
+          <a href="{{ url_for('leagues.detail', league_id=league._id) }}" class="btn btn-ghost">
+            <i data-lucide="arrow-left" class="me-2"></i>
+            Back to League
+          </a>
+        </div>
+        <p class="text-secondary mb-4">Update the league's details. Only admins can access this page.</p>
+
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label" for="name">{{ form.name.label.text }}</label>
+            {{ form.name(class_='form-control', id='name') }}
+            {% for error in form.name.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="description">{{ form.description.label.text }}</label>
+            {{ form.description(class_='form-control', id='description', rows='4') }}
+            {% for error in form.description.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="starting_balance">{{ form.starting_balance.label.text }}</label>
+              {{ form.starting_balance(class_='form-control', id='starting_balance') }}
+              {% for error in form.starting_balance.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="end_date">{{ form.end_date.label.text }}</label>
+              {{ form.end_date(class_='form-control', id='end_date', type='datetime-local') }}
+              {% for error in form.end_date.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-3 mt-4">
+            <button class="btn btn-primary" type="submit">Save Changes</button>
+            <a href="{{ url_for('leagues.detail', league_id=league._id) }}" class="btn btn-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h4 class="mb-2">League Information</h4>
+        <ul class="mb-0">
+          <li>Invite Code: <strong>{{ league.invite_code }}</strong></li>
+          <li>Status: <span class="text-capitalize">{{ league.status }}</span></li>
+          <li>Members: {{ league.member_count }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

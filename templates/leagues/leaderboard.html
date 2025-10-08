@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard - {{ league.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="mb-0">{{ league.name }} - Leaderboard</h2>
+    <a href="{{ url_for('leagues.detail', league_id=league._id) }}" class="btn btn-ghost">
+      <i data-lucide="arrow-left" class="me-2"></i>
+      Back to League
+    </a>
+  </div>
+
+  <div class="card">
+    {% if leaderboard %}
+      {% for entry in leaderboard %}
+        <div class="leaderboard-item">
+          <div class="rank">{{ loop.index }}</div>
+          <div class="user">
+            <div class="avatar">{{ entry.username[0]|upper }}</div>
+            <div class="name">{{ entry.username }}</div>
+          </div>
+          <div class="balance">{{ entry.balance | currency }}</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-secondary mb-0">No leaderboard data yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

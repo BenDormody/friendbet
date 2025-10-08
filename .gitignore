@@ -152,3 +152,7 @@ tmp/
 
 # devcontainer things
 .devcontainer/
+
+DEVELOPMENT_PLAN.md
+project_description.md
+project_style.json

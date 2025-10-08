@@ -104,6 +104,7 @@
 /* Card Components */
 .card {
   background-color: var(--bg-card);
+  color: var(--text-primary);
   border: none;
   border-radius: var(--radius-xl);
   padding: var(--spacing-lg);

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Join League - Fantasy Betting League{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h2 class="mb-0">Join a League</h2>
+          <a href="{{ url_for('leagues.dashboard') }}" class="btn btn-ghost">
+            <i data-lucide="arrow-left" class="me-2"></i>
+            Back to Dashboard
+          </a>
+        </div>
+        <p class="text-secondary mb-4">Enter the 8-character invite code provided by a league member.</p>
+
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label" for="invite_code">{{ form.invite_code.label.text }}</label>
+            {{ form.invite_code(class_='form-control text-uppercase', id='invite_code', placeholder='ABCDEFGH', maxlength='8') }}
+            {% for error in form.invite_code.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="d-flex align-items-center gap-3 mt-4">
+            {{ form.submit(class_='btn btn-primary') }}
+            <a href="{{ url_for('leagues.create') }}" class="btn btn-secondary">
+              <i data-lucide="plus" class="me-2"></i>
+              Create a League Instead
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h4 class="mb-2">How to get an invite code</h4>
+        <ul class="mb-0">
+          <li>Ask a league admin to share the invite code with you.</li>
+          <li>Codes are case-insensitive and 8 characters long.</li>
+          <li>Leagues must be active to accept new members.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="d-flex align-items-center gap-3">
+          <div class="user-avatar" style="width:3rem;height:3rem;font-size:1.25rem;">{{ user.username[0]|upper }}</div>
+          <div>
+            <h4 class="mb-0">{{ user.username }}</h4>
+            <small class="text-secondary">{{ user.email }}</small>
+          </div>
+        </div>
+        <ul class="mt-3 mb-0">
+          <li>Member since: {{ user.created_at | datetime }}</li>
+          <li>Leagues: {{ total_leagues }}</li>
+          <li>Active Leagues: {{ active_leagues }}</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <div class="card">
+        <h4 class="mb-3">Your Leagues</h4>
+        <p class="text-secondary">Visit your dashboard to view and manage leagues.</p>
+        <div class="d-flex gap-2 mt-2">
+          <a href="{{ url_for('bets.history') }}" class="btn btn-ghost">Betting History</a>
+          <a href="{{ url_for('leagues.dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

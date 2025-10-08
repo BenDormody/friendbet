@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Create League - Fantasy Betting League{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h2 class="mb-0">Create New League</h2>
+          <a href="{{ url_for('leagues.dashboard') }}" class="btn btn-ghost">
+            <i data-lucide="arrow-left" class="me-2"></i>
+            Back to Dashboard
+          </a>
+        </div>
+        <p class="text-secondary mb-4">Set up your league details. You will be added as the creator and first member.</p>
+
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label" for="name">{{ form.name.label.text }}</label>
+            {{ form.name(class_='form-control', id='name', placeholder='e.g., NFL Season 2024') }}
+            {% for error in form.name.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="description">{{ form.description.label.text }}</label>
+            {{ form.description(class_='form-control', id='description', rows='4', placeholder='Optional description for your league') }}
+            {% for error in form.description.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="starting_balance">{{ form.starting_balance.label.text }}</label>
+              {{ form.starting_balance(class_='form-control', id='starting_balance', placeholder='1000') }}
+              {% for error in form.starting_balance.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="end_date">{{ form.end_date.label.text }}</label>
+              {{ form.end_date(class_='form-control', id='end_date', type='datetime-local') }}
+              {% for error in form.end_date.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-3 mt-4">
+            {{ form.submit(class_='btn btn-primary') }}
+            <a href="{{ url_for('leagues.join') }}" class="btn btn-secondary">
+              <i data-lucide="log-in" class="me-2"></i>
+              Join a League Instead
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h4 class="mb-2">Tips</h4>
+        <ul class="mb-0">
+          <li>Choose a clear, descriptive league name so friends recognize it.</li>
+          <li>Starting balance applies to every member who joins the league.</li>
+          <li>End date is optional; leave blank for an open-ended league.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

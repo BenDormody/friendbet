@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}{{ ticket.title }} - Ticket Detail{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="mb-1">{{ ticket.title }}</h2>
+      <p class="text-secondary mb-0">{{ ticket.description or 'No description provided.' }}</p>
+      <small class="text-muted">Type: {{ 'Over/Under' if ticket.ticket_type == 'over_under' else 'Moneyline' }} • Status: {{ ticket.status | upper }} • Closes: {{ ticket.closes_at | datetime }}</small>
+    </div>
+    <div>
+      <a href="{{ url_for('leagues.detail', league_id=league._id) }}" class="btn btn-ghost">
+        <i data-lucide="arrow-left" class="me-2"></i>
+        Back to League
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <h4 class="mb-3">Options</h4>
+        <form action="{{ url_for('bets.place_bet', ticket_id=ticket._id) }}" method="POST" id="bet-form">
+          <input type="hidden" name="selected_option" id="selected_option" value="">
+          <div class="row g-3">
+            {% if ticket.ticket_type == 'over_under' %}
+              {% for option in ticket.options %}
+                <div class="col-md-6">
+                  <button type="button" class="odds-button w-100" data-option="{{ option.option_text }}">
+                    <div class="odds-label">{{ option.option_text }}</div>
+                    <div class="odds-value">{{ option.odds }}</div>
+                  </button>
+                </div>
+              {% endfor %}
+            {% else %}
+              {% for option in ticket.options %}
+                <div class="col-md-4">
+                  <button type="button" class="odds-button w-100" data-option="{{ option.option_text }}">
+                    <div class="odds-label">{{ option.option_text }}</div>
+                    <div class="odds-value">{{ option.odds }}</div>
+                  </button>
+                </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+
+          <div class="row g-3 align-items-end mt-3">
+            <div class="col-md-6">
+              <label class="form-label" for="amount">Bet Amount</label>
+              <input type="number" step="0.01" min="1" class="form-control" name="amount" id="amount" placeholder="10.00" required>
+              <small class="text-secondary">Balance: {{ league.get_member(current_user._id).balance | currency }}</small>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <button type="submit" class="btn btn-primary" {% if not ticket.can_place_bets() or user_bet %}disabled{% endif %}>
+                <i data-lucide="coins" class="me-2"></i>
+                Place Bet
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      {% if user_bet %}
+        <div class="card">
+          <h4 class="mb-3">Your Bet</h4>
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-bold">{{ user_bet.selected_option }}</div>
+              <div class="text-secondary">Amount: {{ user_bet.amount | currency }} • Potential Payout: {{ user_bet.potential_payout | currency }}</div>
+            </div>
+            <div>
+              {% if user_bet.is_pending() and ticket.can_place_bets() %}
+                <form action="{{ url_for('bets.cancel_bet', bet_id=user_bet._id) }}" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-ghost" onclick="return confirm('Cancel your bet?')">Cancel Bet</button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+      {% if league.is_admin(current_user._id) %}
+        <div class="card mb-4">
+          <h4 class="mb-3">Admin Actions</h4>
+          <div class="d-flex gap-2">
+            <form action="{{ url_for('tickets.close', ticket_id=ticket._id) }}" method="POST">
+              <button type="submit" class="btn btn-secondary" {% if ticket.status != 'open' %}disabled{% endif %}>Close Ticket</button>
+            </form>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#resolveModal" {% if ticket.status != 'closed' %}disabled{% endif %}>Resolve</button>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <h4 class="mb-3">All Bets</h4>
+          {% if all_bets %}
+            <div class="list-group list-group-flush">
+              {% for bet in all_bets %}
+                <div class="list-group-item bg-transparent text-light border-secondary py-2">
+                  <div class="d-flex justify-content-between">
+                    {% set member = league.get_member(bet.user_id) %}
+                    <div>{{ member['username'] if member else 'Member' }} - <span class="text-secondary">{{ bet.selected_option }}</span></div>
+                    <div class="fw-bold">{{ bet.amount | currency }}</div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-secondary mb-0">No bets yet.</p>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <div class="card">
+        <h4 class="mb-2">Ticket Info</h4>
+        <ul class="mb-0">
+          <li>Status: <span class="text-uppercase">{{ ticket.status }}</span></li>
+          <li>Created: {{ ticket.created_at | datetime }}</li>
+          <li>Closes: {{ ticket.closes_at | datetime }}</li>
+          {% if ticket.status == 'resolved' %}
+            <li>Winning Option: <strong>{{ ticket.resolution }}</strong></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resolve Modal -->
+<div class="modal fade" id="resolveModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Resolve Ticket</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('tickets.resolve', ticket_id=ticket._id) }}" method="POST">
+        <div class="modal-body">
+          <label class="form-label">Select Winning Option</label>
+          <select name="winning_option" class="form-select" required>
+            {% for option in ticket.options %}
+              <option value="{{ option.option_text }}">{{ option.option_text }} ({{ option.odds }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Resolve</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function(){
+    const buttons = document.querySelectorAll('.odds-button');
+    const hidden = document.getElementById('selected_option');
+
+    buttons.forEach(btn => btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      hidden.value = btn.getAttribute('data-option');
+    }));
+  })();
+</script>
+{% endblock %}
